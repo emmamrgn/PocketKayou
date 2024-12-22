@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 
 from global_var import *
+from log_discord import log_role_change, log_bot_online, log_member_verification
 
 # Configuration du bot
 intents = discord.Intents.default()
@@ -30,8 +31,8 @@ async def gerer_roles(member):
 
     # Logging de l'état actuel
     print(f"\nVérification pour {member.display_name}:")
-    print(f"- Sub Emma: {has_sub_emma}")
-    print(f"- Sub Ro: {has_sub_ro}")
+    # print(f"- Sub Emma: {has_sub_emma}")
+    # print(f"- Sub Ro: {has_sub_ro}")
 
     # Gestion du rôle les_subs
     should_have_role_les_subs = has_sub_emma or has_sub_ro
@@ -40,6 +41,7 @@ async def gerer_roles(member):
         try:
             await member.add_roles(role_les_subs)
             print(f"✅ Rôle 'les_subs' ajouté à {member.display_name}")
+            await log_role_change(bot, member, "Ajouté", "les_subs")
         except discord.Forbidden:
             print(f"❌ Erreur de permissions pour ajouter 'les_subs' à {member.display_name}")
         except discord.HTTPException as e:
@@ -48,6 +50,7 @@ async def gerer_roles(member):
         try:
             await member.remove_roles(role_les_subs)
             print(f"🔄 Rôle 'les_subs' retiré de {member.display_name} (conditions non remplies)")
+            await log_role_change(bot, member, "Retiré", "les_subs")
         except discord.Forbidden:
             print(f"❌ Erreur de permissions pour retirer 'les_subs' de {member.display_name}")
         except discord.HTTPException as e:
@@ -60,6 +63,7 @@ async def gerer_roles(member):
         try:
             await member.add_roles(role_super_subs)
             print(f"✅ Rôle 'super_subs' ajouté à {member.display_name}")
+            await log_role_change(bot, member, "Ajouté", "super_subs")
         except discord.Forbidden:
             print(f"❌ Erreur de permissions pour ajouter 'super_subs' à {member.display_name}")
         except discord.HTTPException as e:
@@ -68,6 +72,7 @@ async def gerer_roles(member):
         try:
             await member.remove_roles(role_super_subs)
             print(f"🔄 Rôle 'super_subs' retiré de {member.display_name} (conditions non remplies)")
+            await log_role_change(bot, member, "Retiré", "super_subs")
         except discord.Forbidden:
             print(f"❌ Erreur de permissions pour retirer 'super_subs' de {member.display_name}")
         except discord.HTTPException as e:
@@ -76,17 +81,19 @@ async def gerer_roles(member):
 @bot.event
 async def on_ready():
     print(f'🤖 {bot.user} est connecté et prêt!')
+    await log_bot_online(bot)
     
     for guild in bot.guilds:
         member_count = len(guild.members)
         print(f"\n📊 Vérification du serveur: {guild.name}")
         print(f"📋 Nombre de membres à vérifier: {member_count}")
-        
+        print(f"\nProgression:")
         for i, member in enumerate(guild.members, 1):
-            print(f"\nProgression: {i}/{member_count}")
+            print(f"{i}/{member_count}")
             await gerer_roles(member)
-    
-    print("\n✅ Vérification initiale des rôles terminée")
+
+    await log_member_verification(bot, member, i, member_count)
+    print("\n✅ Vérification des rôles terminée")
 
 @bot.event
 async def on_member_join(member):
