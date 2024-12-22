@@ -8,7 +8,7 @@ intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 
-bot = commands.Bot(command_prefix='+', intents=intents)
+bot = commands.Bot(command_prefix='²', intents=intents)
 
 async def gerer_roles(member):
     """Vérifie et gère l'attribution et le retrait des rôles selon les conditions"""
@@ -114,3 +114,5 @@ async def verifier_roles(ctx, member: discord.Member = None):
 @bot.command()
 async def ping(ctx):
     await ctx.send(f"Pong! ``{round(bot.latency * 1000)}ms``")
+
+bot.run(TOKEN)
