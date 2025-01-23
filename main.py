@@ -9,7 +9,7 @@ intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 
-bot = commands.Bot(command_prefix='²', intents=intents)
+bot = commands.Bot(command_prefix='k!', intents=intents)
 
 async def gerer_roles(member):
     """Vérifie et gère l'attribution et le retrait des rôles selon les conditions"""
