@@ -1,5 +1,9 @@
 import discord
 from discord.ext import commands
+import re
+
+from valorant import rank_ctrl
+import log
 
 from global_var import *
 from log_discord import log_role_change, log_bot_online, log_member_verification
@@ -10,6 +14,51 @@ intents.members = True
 intents.message_content = True
 
 bot = commands.Bot(command_prefix='k!', intents=intents)
+
+@bot.event
+async def on_ready():
+    await log.log_bot_ready(bot)
+    print("valorant-bot is online and ready.")
+
+@bot.command()
+async def ping(ctx):
+    print("k!ping command executed by : ", ctx.author)
+    response = f"Pong! ``{round(bot.latency * 1000)}ms``"
+    await ctx.send(response)
+    await log.log_command(ctx, response)
+
+@bot.command()
+async def rank(ctx, *, username_tag):
+    print("k!rank command exexuted by : ", ctx.author)
+    match = re.match(r"(.+?)#(\w+)", username_tag)
+    if match:
+        username, tag = match.groups()
+    else:
+        parts = username_tag.rsplit(' ', 1)
+        if len(parts) == 2:
+            username, tag = parts
+        else:
+            response = "Format invalide. Utiliser  ``k!rank username#tag``  ou  ``k!rank username tag``"
+            await ctx.send(response)
+            await log.log_command(ctx, response)
+            return
+    controller = rank_ctrl(ctx, username, tag)
+    await controller.get_rank()
+    response = f"rank data fetched for ``{username}#{tag}``"
+    await log.log_command(ctx, response)
+
+@bot.command()
+async def aide(ctx):
+    print(f"k!aide command executed by : {ctx.author}")
+    embed = discord.Embed(title="Aide valorant-bot", color=discord.Color.blue())
+    embed.add_field(name="Préfixe :", value="``k!``")
+    embed.add_field(name="Commandes : ", value = "``k!aide`` ``k!ping`` ``k!rank``")
+    embed.add_field(name="Informations commandes :", value="", inline=False)
+    embed.add_field(name="``k!aide``", value="Afficher ce message d'aide", inline=False)
+    embed.add_field(name="``k!ping``", value="Vérifier la latence du bot",inline=False)
+    embed.add_field(name="``k!rank username#tag``", value="Afficher le rang Valorant d'un joueur", inline=False)
+    await ctx.send(embed=embed)
+    await log.log_command(ctx, "k!aide command executed with embed")
 
 async def gerer_roles(member):
     """Vérifie et gère l'attribution et le retrait des rôles selon les conditions"""
