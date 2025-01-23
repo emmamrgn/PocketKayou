@@ -166,9 +166,4 @@ async def verifier_roles(ctx, member: discord.Member = None):
     await gerer_roles(member)
     await ctx.send(f"✅ Vérification des rôles effectuée pour {member.display_name}")
 
-
-@bot.command()
-async def ping(ctx):
-    await ctx.send(f"Pong! ``{round(bot.latency * 1000)}ms``")
-
 bot.run(TOKEN)
