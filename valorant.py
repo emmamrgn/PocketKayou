@@ -1,13 +1,17 @@
 import aiohttp
 import re
 import discord
+import urllib.parse
+
 
 class rank_modele:
     def __init__(self, username, tag):
         self.username = username
         self.tag = tag
         self.url = f'https://splendid-groovy-feverfew.glitch.me/valorant/eu/{username}/{tag}?mmrChange=true'
-        self.tracker_url = f"https://tracker.gg/valorant/profile/riot/{self.username}%23{self.tag}/overview"
+        # self.tracker_url = f"https://tracker.gg/valorant/profile/riot/{self.username}%23{self.tag}/overview"
+        self.tracker_url = f"https://tracker.gg/valorant/profile/riot/{urllib.parse.quote(self.username)}%23{self.tag}/overview"
+
 
     async def fetch_rank_data(self):
         async with aiohttp.ClientSession() as session:
