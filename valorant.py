@@ -47,9 +47,9 @@ class rank_vue:
             if rr_change >= 0:
                 rr_change = f"+{rr_change}"
             embed_rank = discord.Embed(title=f"{rank_data['username']}", color=discord.Color.brand_red(), timestamp=ctx.message.created_at)
-            embed_rank.add_field(name="rank : ", value=f"``{rank_data['rank']} - {rank_data['rr']} rr``", inline=False)
+            embed_rank.add_field(name="rank : ", value=f"``{rank_data['rank']} - {rank_data['rr']} rr``", inline=True)
             embed_rank.add_field(name="last game : ", value=f"``{rr_change} rr``", inline=False)
-            # Create an instance of rank_modele to get the tracker URL
+        
             username, tag = rank_data['username'].split('#')
             rank_model_instance = rank_modele(username, tag)
             embed_rank.add_field(name="tracker : ", value=f"[tracker.gg/{rank_data['username']}]({rank_model_instance.get_tracker_url()})", inline=False)
