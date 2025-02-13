@@ -2,7 +2,7 @@
 
 ## Description
 
-Ce bot met automatiquement à jour les rôles sur votre serveur Discord en fonction des subs Twitch. Il attribue des rôles en fonction de si un utilisateur est sub à une ou deux chaînes Twitch spécifiques.
+Ce bot met automatiquement à jour les rôles sur votre serveur Discord en fonction des subs Twitch. Il attribue des rôles en fonction de si un utilisateur est sub à une ou deux chaînes Twitch spécifiques. Il renvoie également le rank valorant de l'utilisateur.
 
 - **les_subs**: Attribué si un utilisateur est abonné à l'une des chaînes Twitch spécifiées.
 - **super_subs**: Attribué si un utilisateur est abonné aux deux chaînes Twitch spécifiées.
