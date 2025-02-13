@@ -9,6 +9,7 @@ Ce bot met automatiquement à jour les rôles sur votre serveur Discord en fonct
 
 ## Fonctionnalités
 
+- Réponse à une commande qui renvoie le rang du joueur.
 - Attribution et retrait automatiques des rôles en fonction des abonnements Twitch.
 - Journalisation des changements de rôles, du statut du bot et de la vérification des membres.
 - Commande de vérification manuelle des rôles.
@@ -16,12 +17,13 @@ Ce bot met automatiquement à jour les rôles sur votre serveur Discord en fonct
 
 ## Commandes
 
-- `²verifier_roles [membre]`: Vérifier et mettre à jour manuellement les rôles pour un membre spécifique ou pour l'émetteur de la commande si aucun membre n'est spécifié.
-- `²ping`: Vérifier la latence du bot.
+- `k!rank [tagvlr#id]` : Renvoie le rank du joueur
+- `k!verifier_roles [membre]`: Vérifier et mettre à jour manuellement les rôles pour un membre spécifique ou pour l'émetteur de la commande si aucun membre n'est spécifié.
+- `k!ping`: Vérifier la latence du bot.
 
 ## Journalisation
 
-Le bot journalise les événements importants tels que les changements de rôles, le statut du bot et la vérification des membres dans un canal Discord spécifié.
+Le bot journalise les événements importants tels que les appels aux commandes, les changements de rôles, le statut du bot et la vérification des membres dans un canal Discord spécifié.
 
 
 ## Développeur
