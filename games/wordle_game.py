@@ -2,58 +2,14 @@ import discord
 import random
 from typing import Dict, Optional
 import unicodedata
+from .dico import MOTS_5_LETTRES
 
 class WordleGame:
     def __init__(self):
         self.active_games: Dict[int, dict] = {}  # user_id: game_data
         
-        # Liste de mots français de 5 lettres
-        self.word_list = [
-            "ABOUT", "ACIER", "ACTIF", "ADDON", "ADIEU", "ADMIN", "AGENT", "AIDER",
-            "AIGLE", "AIMER", "AINSI", "ALBUM", "ALORS", "AMOUR", "ANIME", "APRES",
-            "ARBRE", "ARCHE", "ARGENT", "ARMER", "ASILE", "ATLAS", "ATOME", "AUSSI",
-            "AUTRE", "AVANT", "AVOIR", "BADGE", "BAGUE", "BARRE", "BASIL", "BASSE",
-            "BATON", "BELLE", "BLANC", "BLOND", "BOIRE", "BOITE", "BOMBE", "BONUS",
-            "BOTTE", "BOULE", "BRAVE", "BRUIT", "CABLE", "CADRE", "CAFE", "CALME",
-            "CANAL", "CANNE", "CARTE", "CAUSE", "CENTS", "CHAMP", "CHANT", "CHAOS",
-            "CHAUD", "CHIEN", "CHOSE", "CHUTE", "CIRCE", "CIVIL", "CLAIR", "CLASSE",
-            "CLEFS", "COEUR", "COINS", "COLLE", "CONTE", "CORPS", "COTES", "COUPE",
-            "COURS", "COURT", "CRIME", "CRUEL", "CYCLE", "DANSE", "DEBUT", "DECKH",
-            "DENSE", "DEPOT", "DROIT", "ECHEC", "ECOLE", "ECRIRE", "EFFET", "ELEVE",
-            "EMBLA", "EPAIS", "EPICE", "ERREUR", "ESPACE", "ESPRIT", "ESSAI", "ETAGE",
-            "ETAPE", "ETATS", "ETUDE", "EXACT", "FACILE", "FAIRE", "FAUSSE", "FETES",
-            "FEUIL", "FICHE", "FINAL", "FIXER", "FLAMME", "FLEUR", "FOIRE", "FORCE",
-            "FORME", "FORTE", "FOULE", "FRUIT", "FUTUR", "GARDE", "GELER", "GENRE",
-            "GLACE", "GLOBE", "GRACE", "GRAIN", "GRAND", "GRAVE", "GRILL", "GRISE",
-            "GROS", "GROUPE", "GUIDE", "HAUTE", "HEROS", "HEURE", "HOMME", "HONET",
-            "HUILE", "IDEES", "IMAGE", "INDEX", "ISSUE", "JETON", "JEURE", "JOINS",
-            "JOUER", "JOURS", "JUSTE", "LANCE", "LARGE", "LASER", "LIBRE", "LIGNE",
-            "LIVRE", "LOGIC", "LONGS", "LOURD", "LUEUR", "LUTTE", "MAGIE", "MAIRE",
-            "MAJOR", "MAMAN", "MARCH", "MASSE", "MATCH", "MATEO", "MENUS", "METAL",
-            "MICRO", "MIEUX", "MILAN", "MILLE", "MINES", "MIXER", "MODELS", "MOINS",
-            "MONDE", "MONTE", "MORAL", "MORTE", "MOTIF", "MOYEN", "MUETS", "MURAL",
-            "NAGER", "NEIGE", "NEUVE", "NOBLE", "NOIRE", "NORME", "NOTRE", "NUAGE",
-            "OCEAN", "OFFRE", "ORDRE", "OUEST", "OUVRE", "PAIRE", "PANEL", "PAPAS",
-            "PARCH", "PARIS", "PARLE", "PARTS", "PASSE", "PEINE", "PELLE", "PENSE",
-            "PERTE", "PETIT", "PHOTO", "PIECE", "PISTE", "PLACE", "PLAGE", "PLANE",
-            "PLATE", "PLEIN", "POCHE", "POEME", "POINT", "POKER", "POMME", "PORTE",
-            "POSER", "POSTE", "POUND", "POWER", "PRETS", "PRIME", "PRISE", "PROCE",
-            "PROFIT", "QUEUE", "QUITE", "RADIO", "RAIES", "RAPID", "RAYON", "RECIT",
-            "REGAL", "REINE", "RESTE", "RICHE", "RIDER", "RIFLE", "RIGID", "RISKY",
-            "RIVAL", "ROCHE", "ROMAN", "RONDE", "ROUGE", "ROUTE", "ROYAL", "RUGBY",
-            "RUNES", "SABLE", "SAINE", "SAINT", "SALLE", "SAPIN", "SAUCE", "SCENE",
-            "SERRE", "SIGNE", "SINGE", "SMOKE", "SOBRE", "SOLDE", "SOLID", "SONDE",
-            "SORTE", "SORTS", "SOUPE", "SPIKE", "SPORT", "STAFF", "STAGE", "STAND",
-            "STARS", "STYLE", "SUCRE", "SUITE", "SUPER", "TABLE", "TACHE", "TAPIS",
-            "TARDE", "TARTE", "TASSE", "TEMPS", "TERME", "TERRE", "TESTE", "TETES",
-            "TEXTE", "THEME", "TIGRE", "TITRE", "TOMBE", "TORCH", "TOTAL", "TOUCH",
-            "TOURS", "TRACE", "TRAIN", "TRAIT", "TRAME", "TRASH", "TRIAL", "TRIBE",
-            "TROIS", "TROOP", "TRUST", "TUERC", "TUEUR", "UNITE", "USAGE", "USINE",
-            "UTILE", "VAGUE", "VALID", "VALSE", "VALUE", "VASTE", "VAULT", "VENUE",
-            "VERRE", "VERSO", "VERTS", "VIBRE", "VIEUX", "VIGIL", "VILLE", "VIRUS",
-            "VISER", "VISIT", "VITAE", "VIVANT", "VIVRE", "VOIES", "VOIRE", "VOLER",
-            "VOLTE", "VOTES", "VOTRE", "WAGON", "YACHT", "YUZUS",  "ZONES", "ZOOMS"
-        ]
+        # Importer la liste de mots depuis dico.py
+        self.word_list = MOTS_5_LETTRES
     
     def normalize_text(self, text: str) -> str:
         """Normalise le texte en retirant les accents et en mettant en majuscule"""
