@@ -16,15 +16,15 @@ Bot Discord multifonctions avec surveillance de streams, jeux interactifs et ges
 
 ### 🎯 Valorant
 - **Statistiques de rang** : Affichage des statistiques Valorant d'un joueur
-  - `k!rank <username#tag>` - Afficher le rang d'un joueur
+  - `k?rank <username#tag>` - Afficher le rang d'un joueur
 
 ### 🛠️ Modération
 - **Suppression de messages** : Commande réservée aux administrateurs
   - `/clear <nombre>` - Supprimer entre 1 et 100 messages
 
 ### 📊 Utilitaires
-- `k!ping` - Vérifier la latence du bot
-- `k!aide` - Afficher le message d'aide
+- `k?ping` - Vérifier la latence du bot
+- `k?aide` - Afficher le message d'aide
 
 ## 🚀 Installation
 
@@ -40,9 +40,7 @@ Bot Discord multifonctions avec surveillance de streams, jeux interactifs et ges
 python -m venv .venv
 
 # Activer l'environnement virtuel
-source .venv/bin/activate  # Linux/Mac
-# ou
-.venv\Scripts\activate  # Windows 
+source .venv/bin/activate  
 
 # Installer les dépendances
 pip install -r requirements.txt
@@ -60,15 +58,15 @@ TOKEN = "votre_token_discord"
 TWITCH_CLIENT_ID = "votre_client_id_twitch"
 TWITCH_CLIENT_SECRET = "votre_client_secret_twitch"
 TWITCH_USERNAME = "nom_du_streamer"
-TWITCH_NOTIFICATION_CHANNEL_ID = 123456789  # ID du canal de notification
-TWITCH_ROLE_ID = 123456789  # ID du rôle à mentionner
+TWITCH_NOTIFICATION_CHANNEL_ID = "ID du channel discord pour les notifs"   
+TWITCH_ROLE_ID = "ID du rôle à mentionner" 
 
 # TikTok
 TIKTOK_USERNAME = "nom_utilisateur_tiktok"
-TIKTOK_NOTIFICATION_CHANNEL_ID = 123456789  # ID du canal de notification
+TIKTOK_NOTIFICATION_CHANNEL_ID = "ID du channel discord pour les notifs" 
 
 # Logs
-CHANNEL_ID = 123456789  # ID du canal pour les logs
+CHANNEL_ID = "ID du channel discord pour les logs" 
 ```
 
 2. Configurer les intents du bot Discord :
@@ -99,10 +97,10 @@ python main.py
 - `/abandon` - Abandonner la partie
 - `/clear <nombre>` - Supprimer des messages (admin uniquement)
 
-#### Commandes Préfixe (k!)
-- `k!ping` - Vérifier la latence
-- `k!aide` - Afficher l'aide
-- `k!rank <username#tag>` - Statistiques Valorant
+#### Commandes Préfixe (k?)
+- `k?ping` - Vérifier la latence
+- `k?aide` - Afficher l'aide
+- `k?rank <username#tag>` - Statistiques Valorant
 
 ## 📁 Structure du projet
 
@@ -142,7 +140,7 @@ PocketKayou/
 
 ## 👤 Auteur
 
-[emmamrgn](https://github.com/emmamrgn)
+@[emmamrgn](https://github.com/emmamrgn)
 
 ## 📄 Licence
 

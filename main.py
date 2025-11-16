@@ -37,36 +37,36 @@ tiktok_monitor = TikTokMonitor(
 
 @bot.command()
 async def ping(ctx):
-    print("k!ping command executed by : ", ctx.author)
+    print("k?ping command executed by : ", ctx.author)
     response = f"Pong! ``{round(bot.latency * 1000)}ms``"
     await ctx.send(response)
     await log_command(ctx, response)
 
 @bot.command()
 async def aide(ctx):
-    print(f"k!aide command executed by : {ctx.author}")
+    print(f"k?aide command executed by : {ctx.author}")
     embed = discord.Embed(title="Aide valorant-bot", color=discord.Color.blue())
-    embed.add_field(name="Préfixe :", value="``k!``")
-    embed.add_field(name="Commandes : ", value = "``k!aide`` ``k!ping`` ``k!rank``")
+    embed.add_field(name="Préfixe :", value="``k?``")
+    embed.add_field(name="Commandes : ", value = "``k?aide`` ``k?ping`` ``k?rank``")
     embed.add_field(name="Informations commandes :", value="", inline=False)
-    embed.add_field(name="``k!aide``", value="Afficher ce message d'aide", inline=False)
-    embed.add_field(name="``k!ping``", value="Vérifier la latence du bot",inline=False)
-    embed.add_field(name="``k!rank username#tag``", value="Afficher le rang Valorant d'un joueur", inline=False)
+    embed.add_field(name="``k?aide``", value="Afficher ce message d'aide", inline=False)
+    embed.add_field(name="``k?ping``", value="Vérifier la latence du bot",inline=False)
+    embed.add_field(name="``k?rank username#tag``", value="Afficher le rang Valorant d'un joueur", inline=False)
     await ctx.send(embed=embed)
-    await log_command(ctx, "k!aide command executed with embed")
+    await log_command(ctx, "k?aide command executed with embed")
 
 @bot.command()
 async def rank(ctx, *, username: str = None):
     """Affiche le rang Valorant d'un joueur depuis tracker.gg"""
-    print(f"k!rank command executed by: {ctx.author}")
+    print(f"k?rank command executed by: {ctx.author}")
     
     if not username:
-        await ctx.send("❌ Veuillez fournir un nom d'utilisateur avec le tag. Exemple: `k!rank emm4#000`")
+        await ctx.send("❌ Veuillez fournir un nom d'utilisateur avec le tag. Exemple: `k?rank emm4#000`")
         return
     
     # Vérifier le format username#tag
     if "#" not in username:
-        await ctx.send("❌ Format incorrect. Utilisez: `k!rank username#tag` (ex: `k!rank emm4#000`)")
+        await ctx.send("❌ Format incorrect. Utilisez: `k?rank username#tag` (ex: `k?rank emm4#000`)")
         return
     
     # Message de chargement
@@ -81,12 +81,12 @@ async def rank(ctx, *, username: str = None):
         await loading_msg.edit(content=None, embed=embed)
         
         # Log la commande
-        log_msg = f"k!rank executed for {username} - Success: {data['success']}"
+        log_msg = f"k?rank executed for {username} - Success: {data['success']}"
         await log_command(ctx, log_msg)
         
     except Exception as e:
         await loading_msg.edit(content=f"❌ Erreur lors de la récupération des données: {str(e)}")
-        print(f"Error in k!rank command: {e}")
+        print(f"Error in k?rank command: {e}")
 
 # ===== COMMANDES SLASH WORDLE =====
 
