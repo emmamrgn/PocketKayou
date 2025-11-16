@@ -15,7 +15,7 @@ async def log_command(ctx, response):
 async def log_bot_ready(bot):
     channel = bot.get_channel(CHANNEL_ID)
     if channel:
-        bot_status = f"🤖 {bot.user} est connecté et prêt!"
+        bot_status = f"{bot.user} est connecté et prêt!"
         date = datetime.now().strftime("%H:%M %d-%m-%Y")
         content = date + " : " + bot_status
         await channel.send(f"```{content}```")

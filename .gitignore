@@ -1,3 +1,42 @@
+# Fichiers de configuration sensibles
 global_var.py
+
+# Python
 __pycache__/
-TWITCH_SETUP.md
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Environnement virtuel (NE PAS COMMIT - prend beaucoup de place)
+env/
+.venv/
+venv/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg

@@ -33,17 +33,14 @@ tiktok_monitor = TikTokMonitor(
     notification_channel_id=TIKTOK_NOTIFICATION_CHANNEL_ID
 )
 
-@bot.event
-async def on_ready():
-    await log.log_bot_ready(bot)
-    print("valorant-bot is online and ready.")
+
 
 @bot.command()
 async def ping(ctx):
     print("k!ping command executed by : ", ctx.author)
     response = f"Pong! ``{round(bot.latency * 1000)}ms``"
     await ctx.send(response)
-    await log.log_command(ctx, response)
+    await log_command(ctx, response)
 
 @bot.command()
 async def aide(ctx):
@@ -56,7 +53,7 @@ async def aide(ctx):
     embed.add_field(name="``k!ping``", value="Vérifier la latence du bot",inline=False)
     embed.add_field(name="``k!rank username#tag``", value="Afficher le rang Valorant d'un joueur", inline=False)
     await ctx.send(embed=embed)
-    await log.log_command(ctx, "k!aide command executed with embed")
+    await log_command(ctx, "k!aide command executed with embed")
 
 @bot.command()
 async def rank(ctx, *, username: str = None):
@@ -85,7 +82,7 @@ async def rank(ctx, *, username: str = None):
         
         # Log la commande
         log_msg = f"k!rank executed for {username} - Success: {data['success']}"
-        await log.log_command(ctx, log_msg)
+        await log_command(ctx, log_msg)
         
     except Exception as e:
         await loading_msg.edit(content=f"❌ Erreur lors de la récupération des données: {str(e)}")
@@ -166,10 +163,61 @@ async def abandon_command(interaction: discord.Interaction):
     )
     await interaction.response.send_message(embed=embed)
 
+@bot.tree.command(name="clear", description="Supprimer un nombre de messages (Administrateurs uniquement)")
+@app_commands.describe(nombre="Nombre de messages à supprimer (1-100)")
+@app_commands.checks.has_permissions(administrator=True)
+async def clear_command(interaction: discord.Interaction, nombre: int):
+    """Supprime un nombre spécifié de messages dans le canal"""
+    
+    # Vérifier que le nombre est valide
+    if nombre < 1 or nombre > 100:
+        await interaction.response.send_message(
+            "❌ Le nombre de messages doit être entre 1 et 100.",
+            ephemeral=True
+        )
+        return
+    
+    # Différer la réponse car la suppression peut prendre du temps
+    await interaction.response.defer(ephemeral=True)
+    
+    try:
+        # Supprimer les messages (+ 1 pour inclure potentiellement la commande elle-même)
+        deleted = await interaction.channel.purge(limit=nombre)
+        
+        # Confirmer la suppression
+        await interaction.followup.send(
+            f"✅ {len(deleted)} message(s) supprimé(s) avec succès.",
+            ephemeral=True
+        )
+        
+        # Log la commande
+        print(f"🗑️ {interaction.user} a supprimé {len(deleted)} messages dans #{interaction.channel.name}")
+        
+    except discord.Forbidden:
+        await interaction.followup.send(
+            "❌ Je n'ai pas la permission de supprimer des messages dans ce canal.",
+            ephemeral=True
+        )
+    except Exception as e:
+        await interaction.followup.send(
+            f"❌ Erreur lors de la suppression: {str(e)}",
+            ephemeral=True
+        )
+        print(f"Error in /clear command: {e}")
+
+@clear_command.error
+async def clear_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    """Gère les erreurs de la commande clear"""
+    if isinstance(error, app_commands.errors.MissingPermissions):
+        await interaction.response.send_message(
+            "❌ Vous devez être administrateur pour utiliser cette commande.",
+            ephemeral=True
+        )
+
 @bot.event
 async def on_ready():
     print(f'🤖 {bot.user} est connecté et prêt!')
-    await log_bot_online(bot)
+    await log_bot_ready(bot)
     
     try:
         synced = await bot.tree.sync()
