@@ -13,30 +13,25 @@ async def get_valorant_rank(username_tag: str) -> dict:
         dict: Dictionnaire contenant les informations du joueur ou une erreur
     """
     try:
-        # Formatter l'URL pour tracker.gg
-        formatted_tag = username_tag.replace("#", "%23")
-        url = f"https://tracker.gg/valorant/profile/riot/{formatted_tag}/overview"
+        # Vérifier le format
+        if "#" not in username_tag:
+            return {
+                "success": False,
+                "error": "Format incorrect. Utilisez: username#tag"
+            }
         
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-            'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'DNT': '1',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Cache-Control': 'max-age=0',
-        }
+        # Séparer le nom et le tag
+        game_name, tag_line = username_tag.split("#")
+        
+        # Utiliser l'API valorantrank.chat (retourne du texte brut)
+        url = f"https://valorantrank.chat/eu/{game_name}/{tag_line}?onlyRank=true"
         
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers, allow_redirects=True) as response:
+            async with session.get(url) as response:
                 if response.status == 404:
                     return {
                         "success": False,
-                        "error": "Joueur non trouvé. Vérifiez le nom d'utilisateur et le tag."
+                        "error": "Joueur non trouvé. Vérifiez le nom et le tag."
                     }
                 
                 if response.status != 200:
@@ -45,44 +40,34 @@ async def get_valorant_rank(username_tag: str) -> dict:
                         "error": f"Erreur lors de la récupération des données (Status: {response.status})"
                     }
                 
-                html = await response.text()
-                soup = BeautifulSoup(html, 'html.parser')
+                # Récupérer le texte brut (ex: "Diamond 3 : 19 RR")
+                text = await response.text()
+                text = text.strip()
                 
-                # Chercher le rang actuel
-                rank_element = soup.find('div', class_='valorant-rank-name')
-                rating_element = soup.find('div', class_='rating-entry__rank-info')
-                
-                if not rank_element:
+                # Vérifier si le joueur a un rang
+                if not text or "Unrated" in text:
                     return {
                         "success": False,
-                        "error": "Impossible de récupérer le rang. Le joueur n'a peut-être pas de rang en compétitif."
+                        "error": "Le joueur n'a pas de rang en compétitif."
                     }
                 
-                rank = rank_element.text.strip()
-                
-                # Récupérer le RR (Rating Rank)
-                rr = "N/A"
-                if rating_element:
-                    rr_text = rating_element.find('span', class_='valorant-rank-rating')
-                    if rr_text:
-                        rr = rr_text.text.strip()
-                
-                # Récupérer les stats additionnelles
-                stats = {}
-                stat_elements = soup.find_all('div', class_='stat')
-                for stat in stat_elements[:3]:  # Limiter aux 3 premières stats
-                    name = stat.find('span', class_='name')
-                    value = stat.find('span', class_='value')
-                    if name and value:
-                        stats[name.text.strip()] = value.text.strip()
+                # Parser le texte (format: "Rank : RR RR")
+                if " : " in text:
+                    rank_part, rr_part = text.split(" : ", 1)
+                    rank = rank_part.strip()
+                    rr = rr_part.replace(" RR", "").strip()
+                else:
+                    # Si le format est différent, utiliser le texte brut
+                    rank = text
+                    rr = "N/A"
                 
                 return {
                     "success": True,
                     "username": username_tag,
                     "rank": rank,
-                    "rr": rr,
-                    "stats": stats,
-                    "url": url.replace("%23", "%23")
+                    "rr": f"{rr} RR" if rr != "N/A" else "N/A",
+                    "stats": {},
+                    "url": f"https://tracker.gg/valorant/profile/riot/{game_name}%23{tag_line}/overview"
                 }
                 
     except Exception as e:
@@ -112,14 +97,14 @@ def create_rank_embed(data: dict) -> discord.Embed:
     
     # Déterminer la couleur selon le rank
     rank_colors = {
-        "Iron": discord.Color.from_rgb(79, 89, 102),
-        "Bronze": discord.Color.from_rgb(205, 127, 50),
-        "Silver": discord.Color.from_rgb(192, 192, 192),
-        "Gold": discord.Color.from_rgb(255, 215, 0),
-        "Platinum": discord.Color.from_rgb(0, 255, 255),
-        "Diamond": discord.Color.from_rgb(185, 130, 255),
-        "Ascendant": discord.Color.from_rgb(50, 205, 50),
-        "Immortal": discord.Color.from_rgb(255, 0, 127),
+        "Iron": discord.Color.from_rgb(84, 89, 94),
+        "Bronze": discord.Color.from_rgb(168, 94, 20),
+        "Silver": discord.Color.from_rgb(181, 178, 178),
+        "Gold": discord.Color.from_rgb(255, 205, 81),
+        "Platinum": discord.Color.from_rgb(21, 126, 204),
+        "Diamond": discord.Color.from_rgb(223, 113, 255),
+        "Ascendant": discord.Color.from_rgb(30, 153, 19),
+        "Immortal": discord.Color.from_rgb(255, 0, 55),
         "Radiant": discord.Color.from_rgb(255, 255, 150)
     }
     
@@ -131,8 +116,8 @@ def create_rank_embed(data: dict) -> discord.Embed:
             break
     
     embed = discord.Embed(
-        title=f"🎮 Rang Valorant - {data['username']}",
-        description=f"**{data['rank']}** {data['rr']}",
+        title=f"🎮 {data['username']}",
+        description=f"**{data['rank']}** - {data['rr']}",
         color=embed_color,
         url=data['url']
     )
@@ -142,6 +127,6 @@ def create_rank_embed(data: dict) -> discord.Embed:
         for stat_name, stat_value in data["stats"].items():
             embed.add_field(name=stat_name, value=stat_value, inline=True)
     
-    embed.set_footer(text="Données de tracker.gg")
+   
     
     return embed
