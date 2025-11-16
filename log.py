@@ -1,9 +1,9 @@
 import discord
 from datetime import datetime
-from global_var import CHANNEL_LOG_ID
+from global_var import CHANNEL_ID
 
 async def log_command(ctx, response):
-    channel = ctx.bot.get_channel(CHANNEL_LOG_ID)
+    channel = ctx.bot.get_channel(CHANNEL_ID)
     if channel:
         embed = discord.Embed(title="Command Log", color=discord.Color.blue())
         embed.add_field(name="User", value=f"<@{ctx.author.id}>", inline=True)
@@ -13,9 +13,12 @@ async def log_command(ctx, response):
         await channel.send(embed=embed)
 
 async def log_bot_ready(bot):
-    channel = bot.get_channel(CHANNEL_LOG_ID)
+    channel = bot.get_channel(CHANNEL_ID)
     if channel:
         bot_status = f"🤖 {bot.user} est connecté et prêt!"
         date = datetime.now().strftime("%H:%M %d-%m-%Y")
         content = date + " : " + bot_status
         await channel.send(f"```{content}```")
+
+
+

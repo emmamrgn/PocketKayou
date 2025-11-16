@@ -1,19 +1,37 @@
 import discord
+from discord import app_commands
 from discord.ext import commands
 import re
 
-from valorant import rank_ctrl
-import log
-
+from valorant.rank_ctrl import get_valorant_rank, create_rank_embed
+from twitch import TwitchMonitor
+from tiktok import TikTokMonitor
+from games.wordle_game import wordle_game
+from log import *
 from global_var import *
-from log_discord import log_role_change, log_bot_online, log_member_verification
 
-# Configuration du bot
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 
-bot = commands.Bot(command_prefix='k!', intents=intents)
+bot = commands.Bot(command_prefix='k?', intents=intents)
+
+# Initialiser le moniteur Twitch
+twitch_monitor = TwitchMonitor(
+    bot=bot,
+    client_id=TWITCH_CLIENT_ID,
+    client_secret=TWITCH_CLIENT_SECRET,
+    twitch_username=TWITCH_USERNAME,
+    notification_channel_id=TWITCH_NOTIFICATION_CHANNEL_ID,
+    role_id=TWITCH_ROLE_ID
+)
+
+# Initialiser le moniteur TikTok
+tiktok_monitor = TikTokMonitor(
+    bot=bot,
+    tiktok_username=TIKTOK_USERNAME,
+    notification_channel_id=TIKTOK_NOTIFICATION_CHANNEL_ID
+)
 
 @bot.event
 async def on_ready():
@@ -25,26 +43,6 @@ async def ping(ctx):
     print("k!ping command executed by : ", ctx.author)
     response = f"Pong! ``{round(bot.latency * 1000)}ms``"
     await ctx.send(response)
-    await log.log_command(ctx, response)
-
-@bot.command()
-async def rank(ctx, *, username_tag):
-    print("k!rank command exexuted by : ", ctx.author)
-    match = re.match(r"(.+?)#(\w+)", username_tag)
-    if match:
-        username, tag = match.groups()
-    else:
-        parts = username_tag.rsplit(' ', 1)
-        if len(parts) == 2:
-            username, tag = parts
-        else:
-            response = "Format invalide. Utiliser  ``k!rank username#tag``  ou  ``k!rank username tag``"
-            await ctx.send(response)
-            await log.log_command(ctx, response)
-            return
-    controller = rank_ctrl(ctx, username, tag)
-    await controller.get_rank()
-    response = f"rank data fetched for ``{username}#{tag}``"
     await log.log_command(ctx, response)
 
 @bot.command()
@@ -60,110 +58,133 @@ async def aide(ctx):
     await ctx.send(embed=embed)
     await log.log_command(ctx, "k!aide command executed with embed")
 
-async def gerer_roles(member):
-    """Vérifie et gère l'attribution et le retrait des rôles selon les conditions"""
-    # Obtenir les rôles avec gestion d'erreurs améliorée
-    role_les_subs = member.guild.get_role(LES_SUBS)
-    role_super_subs = member.guild.get_role(SUB_ALL)
+@bot.command()
+async def rank(ctx, *, username: str = None):
+    """Affiche le rang Valorant d'un joueur depuis tracker.gg"""
+    print(f"k!rank command executed by: {ctx.author}")
     
-    if not role_les_subs or not role_super_subs:
-        print(f"Erreur critique pour {member.display_name}:")
-        if not role_les_subs:
-            print(f"- Rôle 'les_subs' (ID: {LES_SUBS}) introuvable")
-        if not role_super_subs:
-            print(f"- Rôle 'super_subs' (ID: {SUB_ALL}) introuvable")
+    if not username:
+        await ctx.send("❌ Veuillez fournir un nom d'utilisateur avec le tag. Exemple: `k!rank emm4#000`")
         return
-
-    # Vérification des rôles avec logging amélioré
-    has_sub_emma = any(role.id == SUB_EMMA for role in member.roles)
-    has_sub_ro = any(role.id == SUB_RO for role in member.roles)
-
-    # Logging de l'état actuel
-    print(f"\nVérification pour {member.display_name}:")
-    # print(f"- Sub Emma: {has_sub_emma}")
-    # print(f"- Sub Ro: {has_sub_ro}")
-
-    # Gestion du rôle les_subs
-    should_have_role_les_subs = has_sub_emma or has_sub_ro
     
-    if should_have_role_les_subs and role_les_subs not in member.roles:
-        try:
-            await member.add_roles(role_les_subs)
-            print(f"✅ Rôle 'les_subs' ajouté à {member.display_name}")
-            await log_role_change(bot, member, "Ajouté", "les_subs")
-        except discord.Forbidden:
-            print(f"❌ Erreur de permissions pour ajouter 'les_subs' à {member.display_name}")
-        except discord.HTTPException as e:
-            print(f"❌ Erreur HTTP pour 'les_subs': {str(e)}")
-    elif not should_have_role_les_subs and role_les_subs in member.roles:
-        try:
-            await member.remove_roles(role_les_subs)
-            print(f"🔄 Rôle 'les_subs' retiré de {member.display_name} (conditions non remplies)")
-            await log_role_change(bot, member, "Retiré", "les_subs")
-        except discord.Forbidden:
-            print(f"❌ Erreur de permissions pour retirer 'les_subs' de {member.display_name}")
-        except discord.HTTPException as e:
-            print(f"❌ Erreur HTTP: {str(e)}")
-
-    # Gestion du rôle super_subs
-    should_have_role_super_subs = has_sub_emma and has_sub_ro
+    # Vérifier le format username#tag
+    if "#" not in username:
+        await ctx.send("❌ Format incorrect. Utilisez: `k!rank username#tag` (ex: `k!rank emm4#000`)")
+        return
     
-    if should_have_role_super_subs and role_super_subs not in member.roles:
-        try:
-            await member.add_roles(role_super_subs)
-            print(f"✅ Rôle 'super_subs' ajouté à {member.display_name}")
-            await log_role_change(bot, member, "Ajouté", "super_subs")
-        except discord.Forbidden:
-            print(f"❌ Erreur de permissions pour ajouter 'super_subs' à {member.display_name}")
-        except discord.HTTPException as e:
-            print(f"❌ Erreur HTTP: {str(e)}")
-    elif not should_have_role_super_subs and role_super_subs in member.roles:
-        try:
-            await member.remove_roles(role_super_subs)
-            print(f"🔄 Rôle 'super_subs' retiré de {member.display_name} (conditions non remplies)")
-            await log_role_change(bot, member, "Retiré", "super_subs")
-        except discord.Forbidden:
-            print(f"❌ Erreur de permissions pour retirer 'super_subs' de {member.display_name}")
-        except discord.HTTPException as e:
-            print(f"❌ Erreur HTTP: {str(e)}")
+    # Message de chargement
+    loading_msg = await ctx.send("🔍 Recherche des informations du joueur...")
+    
+    try:
+        # Récupérer les données
+        data = await get_valorant_rank(username)
+        
+        # Créer et envoyer l'embed
+        embed = create_rank_embed(data)
+        await loading_msg.edit(content=None, embed=embed)
+        
+        # Log la commande
+        log_msg = f"k!rank executed for {username} - Success: {data['success']}"
+        await log.log_command(ctx, log_msg)
+        
+    except Exception as e:
+        await loading_msg.edit(content=f"❌ Erreur lors de la récupération des données: {str(e)}")
+        print(f"Error in k!rank command: {e}")
+
+# ===== COMMANDES SLASH WORDLE =====
+
+@bot.tree.command(name="wordle", description="Commencer une nouvelle partie de Wordle en français")
+async def wordle_command(interaction: discord.Interaction):
+    """Démarre une nouvelle partie de Wordle"""
+    user_id = interaction.user.id
+    
+    # Vérifier si une partie est déjà en cours
+    existing_game = wordle_game.get_game(user_id)
+    if existing_game:
+        await interaction.response.send_message(
+            "❌ Vous avez déjà une partie en cours ! Utilisez `/abandon` pour l'abandonner ou `/guess` pour continuer.",
+            ephemeral=True
+        )
+        return
+    
+    # Démarrer une nouvelle partie
+    wordle_game.start_game(user_id)
+    embed = wordle_game.create_board_embed(user_id, interaction.user.name)
+    await interaction.response.send_message(embed=embed)
+
+@bot.tree.command(name="guess", description="Proposer un mot pour deviner le Wordle")
+@app_commands.describe(mot="Le mot de 5 lettres à proposer")
+async def guess_command(interaction: discord.Interaction, mot: str):
+    """Propose un mot pour le Wordle"""
+    user_id = interaction.user.id
+    
+    # Vérifier si une partie est en cours
+    game = wordle_game.get_game(user_id)
+    if not game:
+        await interaction.response.send_message(
+            "❌ Aucune partie en cours ! Utilisez `/wordle` pour commencer.",
+            ephemeral=True
+        )
+        return
+    
+    # Vérifier la tentative
+    valid, result, game_over, won = wordle_game.check_guess(user_id, mot)
+    
+    if not valid:
+        embed = wordle_game.create_board_embed(user_id, interaction.user.name, invalid_word=True)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+        return
+    
+    # Afficher le résultat
+    embed = wordle_game.create_board_embed(user_id, interaction.user.name, result, game_over, won)
+    await interaction.response.send_message(embed=embed)
+    
+    # Si la partie est terminée, la supprimer
+    if game_over:
+        wordle_game.end_game(user_id)
+
+@bot.tree.command(name="abandon", description="Abandonner la partie de Wordle en cours")
+async def abandon_command(interaction: discord.Interaction):
+    """Abandonne la partie de Wordle en cours"""
+    user_id = interaction.user.id
+    
+    game = wordle_game.get_game(user_id)
+    if not game:
+        await interaction.response.send_message(
+            "❌ Aucune partie en cours !",
+            ephemeral=True
+        )
+        return
+    
+    word = game['word']
+    wordle_game.end_game(user_id)
+    
+    embed = discord.Embed(
+        title="🏳️ Partie abandonnée",
+        description=f"Le mot était : **{word}**",
+        color=discord.Color.orange()
+    )
+    await interaction.response.send_message(embed=embed)
 
 @bot.event
 async def on_ready():
     print(f'🤖 {bot.user} est connecté et prêt!')
     await log_bot_online(bot)
     
-    for guild in bot.guilds:
-        member_count = len(guild.members)
-        print(f"\n📊 Vérification du serveur: {guild.name}")
-        print(f"📋 Nombre de membres à vérifier: {member_count}")
-        print(f"\nProgression:")
-        for i, member in enumerate(guild.members, 1):
-            print(f"{i}/{member_count}")
-            await gerer_roles(member)
-
-    await log_member_verification(bot, member, i, member_count)
-    print("\n✅ Vérification des rôles terminée")
-
-@bot.event
-async def on_member_join(member):
-    print(f"\n👋 Nouveau membre: {member.display_name}")
-    await gerer_roles(member)
-
-@bot.event
-async def on_member_update(before, after):
-    # Vérifier si les rôles ont changé
-    if before.roles != after.roles:
-        print(f"\n🔄 Modification des rôles pour: {after.display_name}")
-        await gerer_roles(after)
-
-@bot.command()
-@commands.has_permissions(manage_roles=True)
-async def verifier_roles(ctx, member: discord.Member = None):
-    if member is None:
-        member = ctx.author
+    try:
+        synced = await bot.tree.sync()
+        print(f"✅ {len(synced)} commandes slash synchronisées")
+    except Exception as e:
+        print(f"❌ Erreur lors de la synchronisation des commandes: {e}")
     
-    print(f"\n🔍 Vérification manuelle demandée pour: {member.display_name}")
-    await gerer_roles(member)
-    await ctx.send(f"✅ Vérification des rôles effectuée pour {member.display_name}")
+    # Démarrer la surveillance Twitch
+    twitch_monitor.start()
+    print("🎥 Surveillance Twitch activée")
+    
+    # Démarrer la surveillance TikTok
+    tiktok_monitor.start()
+    print("🎵 Surveillance TikTok activée")
+    
+
 
 bot.run(TOKEN)
